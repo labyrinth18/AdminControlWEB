@@ -36,7 +36,7 @@ namespace AdminControl.WebApp
 
             string connStr = builder.Configuration.GetConnectionString("AdminControl") ?? "";
 
-            // DAL registrations (teacher's style)
+            // DAL registrations 
             builder.Services.AddTransient<IRoleDal>(sp => new RoleDalEf(connStr, sp.GetRequiredService<IMapper>()))
                             .AddTransient<IUserDal>(sp => new UserDalEf(connStr, sp.GetRequiredService<IMapper>()));
 
