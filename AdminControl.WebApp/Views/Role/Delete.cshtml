@@ -1,0 +1,25 @@
+@model RoleDto
+@{
+    ViewData["Title"] = "Видалення ролі";
+}
+
+<h2>Видалення ролі</h2>
+
+<h3>Ви впевнені, що хочете видалити цю роль?</h3>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-2">ID</dt>
+            <dd class="col-sm-10">@Model.RoleID</dd>
+            <dt class="col-sm-2">Назва ролі</dt>
+            <dd class="col-sm-10">@Model.RoleName</dd>
+        </dl>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" name="id" value="@Model.RoleID" />
+            <input type="submit" value="Видалити" class="btn btn-danger" />
+            <a asp-action="Index" class="btn btn-secondary">Скасувати</a>
+        </form>
+    </div>
+</div>

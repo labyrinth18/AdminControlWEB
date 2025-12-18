@@ -1,0 +1,15 @@
+@{
+    ViewData["Title"] = "Доступ заборонено";
+}
+
+<div class="text-center">
+    <h2 class="text-danger">Доступ заборонено</h2>
+    <p>У вас недостатньо прав для доступу до цього ресурсу.</p>
+    
+    @if (ViewBag.ReturnUrl != null)
+    {
+        <p class="text-muted">Запитуваний ресурс: @ViewBag.ReturnUrl</p>
+    }
+    
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">На головну</a>
+</div>

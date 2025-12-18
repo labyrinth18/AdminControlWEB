@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = "Головна";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Ласкаво просимо до AdminControl</h1>
+    <p>Система адміністрування та управління ролями</p>
+    
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Вітаємо, @User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value!</h5>
+                <p class="card-text">Ваша роль: <strong>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</strong></p>
+                
+                @if (User.IsInRole("Admin") || User.IsInRole("Адміністратор"))
+                {
+                    <a asp-controller="Role" asp-action="Index" class="btn btn-primary">Управління ролями</a>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="mt-4">
+            <p>Для доступу до системи необхідно авторизуватися.</p>
+            <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg">Увійти в систему</a>
+        </div>
+    }
+</div>

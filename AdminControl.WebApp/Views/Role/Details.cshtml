@@ -1,0 +1,22 @@
+@model RoleDto
+@{
+    ViewData["Title"] = "Деталі ролі";
+}
+
+<h2>Деталі ролі</h2>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-2">ID</dt>
+            <dd class="col-sm-10">@Model.RoleID</dd>
+            <dt class="col-sm-2">Назва ролі</dt>
+            <dd class="col-sm-10">@Model.RoleName</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model.RoleID" class="btn btn-warning">Редагувати</a>
+    <a asp-action="Index" class="btn btn-secondary">Назад до списку</a>
+</div>

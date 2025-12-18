@@ -1,0 +1,34 @@
+@model List<RoleDto>
+@{
+    ViewData["Title"] = "Управління ролями";
+}
+
+<h2>Управління ролями</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-success">Створити нову роль</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Назва ролі</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.RoleID</td>
+                <td>@item.RoleName</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.RoleID" class="btn btn-sm btn-info">Деталі</a>
+                    <a asp-action="Edit" asp-route-id="@item.RoleID" class="btn btn-sm btn-warning">Редагувати</a>
+                    <a asp-action="Delete" asp-route-id="@item.RoleID" class="btn btn-sm btn-danger">Видалити</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
