@@ -154,16 +154,17 @@ namespace AdminControl.BL.Tests
         }
 
         [Test]
-        public void GetUsers_ShouldReturnEmptyList_WhenNoUsers()
+        public void GetUserByLogin_ShouldReturnNull_WhenNotFound()
         {
-            
-            _userDalMock.Setup(m => m.GetAll()).Returns(new List<UserDto>());
+            _userDalMock.Setup(m => m.GetByLogin("unknown")).Returns((UserDto?)null);
 
-            var result = _sut.GetUsers();
+            var result = _sut.GetUserByLogin("unknown");
 
-            Assert.That(result, Is.Empty);
+            Assert.That(result, Is.Null);
         }
 
         #endregion
+
+        // ТУТ БУВ РЕГІОН GetUsers Tests - ЙОГО ТРЕБА ВИДАЛИТИ
     }
 }

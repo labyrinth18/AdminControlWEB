@@ -1,7 +1,6 @@
 ﻿using AdminControl.BLL.Interfaces;
 using AdminControl.DTO;
 using AdminControl.WebApp.Controllers;
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
@@ -13,8 +12,9 @@ namespace AdminControl.BL.Tests.Controllers
     [TestFixture]
     public class RoleControllerTests
     {
-        private Mock<IUserManager> _roleManagerMock;
-        private Mock<IMapper> _mapperMock;
+        // 1. Виправлено типи моків
+        private Mock<IRoleManager> _roleManagerMock; // Було IUserManager
+        private Mock<IUserManager> _userManagerMock; // Додано, бо контролер його потребує
         private Mock<ILogger<RoleController>> _loggerMock;
         private Mock<ITempDataDictionary> _tempDataMock;
         private RoleController _controller;
@@ -22,12 +22,15 @@ namespace AdminControl.BL.Tests.Controllers
         [SetUp]
         public void Setup()
         {
-            _roleManagerMock = new Mock<IUserManager>();
-            _mapperMock = new Mock<IMapper>();
+            // 2. Ініціалізація правильних типів
+            _roleManagerMock = new Mock<IRoleManager>();
+            _userManagerMock = new Mock<IUserManager>();
             _loggerMock = new Mock<ILogger<RoleController>>();
             _tempDataMock = new Mock<ITempDataDictionary>();
 
-            _controller = new RoleController(_roleManagerMock.Object, _mapperMock.Object, _loggerMock.Object)
+            // 3. Передача аргументів у правильному порядку згідно з конструктором RoleController
+            // public RoleController(IRoleManager roleManager, IUserManager userManager, ILogger<RoleController> logger)
+            _controller = new RoleController(_roleManagerMock.Object, _userManagerMock.Object, _loggerMock.Object)
             {
                 TempData = _tempDataMock.Object
             };
@@ -39,6 +42,8 @@ namespace AdminControl.BL.Tests.Controllers
             // Arrange
             var roleDto = new RoleCreateDto { RoleName = "Manager" };
             var createdRole = new RoleDto { RoleID = 1, RoleName = "Manager" };
+
+            // Виправлено виклик методу на правильному моку
             _roleManagerMock.Setup(m => m.CreateRole(roleDto)).Returns(createdRole);
 
             // Act
