@@ -3,28 +3,47 @@
     ViewData["Title"] = "Створити роль";
 }
 
-<div class="row justify-content-center mt-4">
-    <div class="col-md-5">
-        <div class="card card-custom">
-            <div class="card-header-custom">
-                <i class="bi bi-plus-circle me-2 text-primary"></i>Створити нову роль
-            </div>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="page-header">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Role" asp-action="Index">Ролі</a></li>
+                    <li class="breadcrumb-item active">Створення</li>
+                </ol>
+            </nav>
+            <h1 class="page-title">Створити роль</h1>
+            <p class="page-subtitle">Додайте нову роль для управління доступом</p>
+        </div>
+
+        <div class="card">
             <div class="card-body p-4">
                 <form asp-action="Create" method="post">
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3 py-2"></div>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                     <div class="mb-4">
-                        <label asp-for="RoleName" class="form-label text-muted small fw-bold">НАЗВА РОЛІ</label>
+                        <label asp-for="RoleName" class="form-label">
+                            Назва ролі <span class="text-danger">*</span>
+                        </label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="bi bi-tag"></i></span>
-                            <input asp-for="RoleName" class="form-control" placeholder="напр. Moderator" />
+                            <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                            <input asp-for="RoleName" class="form-control" placeholder="напр. Moderator" autofocus />
                         </div>
-                        <span asp-validation-for="RoleName" class="text-danger small mt-1 d-block"></span>
+                        <span asp-validation-for="RoleName" class="text-danger small"></span>
+                        <small class="text-muted d-block mt-1">
+                            Назва має бути унікальною та описувати рівень доступу
+                        </small>
                     </div>
 
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary-custom">Зберегти</button>
-                        <a asp-action="Index" class="btn btn-light text-secondary">Скасувати</a>
+                    <hr class="my-4" />
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Скасувати
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>Створити роль
+                        </button>
                     </div>
                 </form>
             </div>
@@ -33,8 +52,5 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-
+    <partial name="_ValidationScriptsPartial" />
 }

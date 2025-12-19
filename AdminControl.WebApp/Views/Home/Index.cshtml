@@ -1,30 +1,195 @@
+@model DashboardViewModel
 @{
-    ViewData["Title"] = "Головна";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Ласкаво просимо до AdminControl</h1>
-    <p>Система адміністрування та управління ролями</p>
-    
-    @if (User.Identity?.IsAuthenticated == true)
-    {
-        <div class="card mt-4">
+<div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Огляд системи адміністрування</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-value">@Model.TotalUsers</div>
+                    <div class="stat-label">Всього користувачів</div>
+                </div>
+                <div class="stat-icon primary">
+                    <i class="bi bi-people"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-value">@Model.ActiveUsers</div>
+                    <div class="stat-label">Активних (@Model.ActiveUsersPercentage%)</div>
+                </div>
+                <div class="stat-icon success">
+                    <i class="bi bi-person-check"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-value">@Model.InactiveUsers</div>
+                    <div class="stat-label">Неактивних</div>
+                </div>
+                <div class="stat-icon warning">
+                    <i class="bi bi-person-dash"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-value">@Model.TotalRoles</div>
+                    <div class="stat-label">Ролей в системі</div>
+                </div>
+                <div class="stat-icon info">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Users by Role -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-pie-chart me-2"></i>Користувачі за ролями</span>
+                <a asp-controller="User" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                    Переглянути всіх
+                </a>
+            </div>
             <div class="card-body">
-                <h5 class="card-title">Вітаємо, @User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value!</h5>
-                <p class="card-text">Ваша роль: <strong>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</strong></p>
-                
-                @if (User.IsInRole("Admin") || User.IsInRole("Адміністратор"))
+                @if (Model.UsersByRole.Any())
                 {
-                    <a asp-controller="Role" asp-action="Index" class="btn btn-primary">Управління ролями</a>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Роль</th>
+                                    <th>Користувачів</th>
+                                    <th style="width: 50%;">Розподіл</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var role in Model.UsersByRole.OrderByDescending(r => r.Value))
+                                {
+                                    var percentage = Model.TotalUsers > 0 
+                                        ? Math.Round((double)role.Value / Model.TotalUsers * 100, 1) 
+                                        : 0;
+                                    var colorClass = role.Key switch
+                                    {
+                                        "Admin" => "bg-danger",
+                                        "Manager" => "bg-primary",
+                                        _ => "bg-secondary"
+                                    };
+                                    <tr>
+                                        <td>
+                                            <span class="badge @colorClass">@role.Key</span>
+                                        </td>
+                                        <td class="fw-semibold">@role.Value</td>
+                                        <td>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar @colorClass" style="width: @percentage%"></div>
+                                            </div>
+                                            <small class="text-muted">@percentage%</small>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <h5>Немає даних</h5>
+                        <p>Користувачів поки що немає</p>
+                    </div>
                 }
             </div>
         </div>
-    }
-    else
-    {
-        <div class="mt-4">
-            <p>Для доступу до системи необхідно авторизуватися.</p>
-            <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg">Увійти в систему</a>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-lightning me-2"></i>Швидкі дії
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-controller="User" asp-action="Create" class="btn btn-primary">
+                            <i class="bi bi-person-plus me-2"></i>Створити користувача
+                        </a>
+                        <a asp-controller="Role" asp-action="Create" class="btn btn-outline-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Створити роль
+                        </a>
+                    }
+                    <a asp-controller="User" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-people me-2"></i>Список користувачів
+                    </a>
+                    <a asp-controller="Role" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-person-badge me-2"></i>Список ролей
+                    </a>
+                </div>
+            </div>
         </div>
-    }
+
+        <!-- System Info -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>Інформація
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Ваша роль:</span>
+                        <span class="badge @(User.IsInRole("Admin") ? "bg-danger" : "bg-primary")">
+                            @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                        </span>
+                    </li>
+                    <li class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Логін:</span>
+                        <span class="fw-semibold">@User.Identity?.Name</span>
+                    </li>
+                    <li class="d-flex justify-content-between py-2">
+                        <span class="text-muted">Версія:</span>
+                        <span>1.0.0</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Permissions Info (for Managers) -->
+@if (User.IsInRole("Manager") && !User.IsInRole("Admin"))
+{
+    <div class="alert alert-info mt-4">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Ваші права:</strong> Ви можете переглядати та редагувати користувачів (крім адміністраторів). 
+        Створення та видалення користувачів, а також управління ролями доступне тільки адміністраторам.
+    </div>
+}

@@ -1,56 +1,126 @@
-@model List<AdminControl.DTO.RoleDto>
+@using AdminControl.WebApp.Controllers
+@model List<RoleWithStatsDto>
 @{
-    ViewData["Title"] = "Управління ролями";
+    ViewData["Title"] = "Ролі";
+    var isAdmin = ViewBag.IsAdmin == true;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="fw-bold mb-0 text-dark">Ролі</h2>
-        <p class="text-muted small">Управління рівнями доступу користувачів</p>
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="page-header mb-0">
+        <h1 class="page-title">Ролі</h1>
+        <p class="page-subtitle">Управління рівнями доступу (@Model.Count)</p>
     </div>
-    <a asp-action="Create" class="btn btn-primary-custom shadow-sm">
-        <i class="bi bi-plus-lg me-1"></i> Створити роль
-    </a>
+    @if (isAdmin)
+    {
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Створити роль
+        </a>
+    }
 </div>
 
-<div class="card card-custom">
-    <div class="card-body p-0">
-        <table class="table table-custom table-hover mb-0">
-            <thead>
-                <tr>
-                    <th class="ps-4" style="width: 10%;">ID</th>
-                    <th style="width: 60%;">Назва</th>
-                    <th class="text-end pe-4" style="width: 30%;">Дії</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td class="ps-4 fw-bold text-secondary">#@item.RoleID</td>
-                        <td class="fw-semibold text-dark">
-                            <i class="bi bi-shield me-2 text-primary"></i>@item.RoleName
-                        </td>
-                        <td class="text-end pe-4">
-                            <div class="btn-group" role="group">
-                                <a asp-action="Edit" asp-route-id="@item.RoleID" class="btn btn-sm btn-outline-secondary" title="Редагувати">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@item.RoleID" class="btn btn-sm btn-outline-danger" title="Видалити">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-        @if (!Model.Any())
-        {
-            <div class="text-center p-5 text-muted">
-                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                <span>Список ролей порожній</span>
-            </div>
-        }
+@if (!isAdmin)
+{
+    <div class="alert alert-info mb-4">
+        <i class="bi bi-info-circle me-2"></i>
+        Ви можете переглядати ролі. Створення, редагування та видалення ролей доступне тільки адміністраторам.
     </div>
+}
+
+<div class="table-container">
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">ID</th>
+                        <th>Назва ролі</th>
+                        <th style="width: 20%;">Користувачів</th>
+                        @if (isAdmin)
+                        {
+                            <th class="text-end" style="width: 20%;">Дії</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var role in Model)
+                    {
+                        var badgeClass = role.RoleName switch
+                        {
+                            "Admin" => "bg-danger",
+                            "Manager" => "bg-primary",
+                            "User" => "bg-secondary",
+                            _ => "bg-info"
+                        };
+                        var iconClass = role.RoleName switch
+                        {
+                            "Admin" => "bi-shield-fill",
+                            "Manager" => "bi-person-gear",
+                            "User" => "bi-person",
+                            _ => "bi-person-badge"
+                        };
+                        
+                        <tr>
+                            <td class="fw-bold text-secondary">#@role.RoleID</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge @badgeClass">
+                                        <i class="bi @iconClass me-1"></i>@role.RoleName
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">
+                                    <i class="bi bi-people me-1"></i>@role.UserCount
+                                </span>
+                            </td>
+                            @if (isAdmin)
+                            {
+                                <td class="text-end">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@role.RoleID" 
+                                           class="btn btn-sm btn-outline-secondary" title="Деталі">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@role.RoleID" 
+                                           class="btn btn-sm btn-outline-primary" title="Редагувати">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        @if (role.UserCount == 0)
+                                        {
+                                            <a asp-action="Delete" asp-route-id="@role.RoleID" 
+                                               class="btn btn-sm btn-outline-danger" title="Видалити">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-outline-secondary" disabled 
+                                                    title="Неможливо видалити роль з користувачами">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="bi bi-person-badge"></i>
+            <h5>Ролей не знайдено</h5>
+            <p>Створіть першу роль для початку роботи</p>
+            @if (isAdmin)
+            {
+                <a asp-action="Create" class="btn btn-primary mt-2">
+                    <i class="bi bi-plus-lg me-2"></i>Створити роль
+                </a>
+            }
+        </div>
+    }
 </div>

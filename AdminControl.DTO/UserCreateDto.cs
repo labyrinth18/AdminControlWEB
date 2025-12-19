@@ -7,12 +7,19 @@ namespace AdminControl.DTO
         [Required(ErrorMessage = "Логін є обов'язковим")]
         [MinLength(3, ErrorMessage = "Логін повинен містити мінімум 3 символи")]
         [MaxLength(50, ErrorMessage = "Логін не може перевищувати 50 символів")]
-        [RegularExpression(@"^[a-zA-Z0-9_]+$", ErrorMessage = "Логін може містити лише латинські літери, цифри та _")]
+        [RegularExpression(@"^[a-zA-Z0-9_]+$", ErrorMessage = "Логін може містити лише латинські літери, цифри та підкреслення")]
         public string Login { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Пароль є обов'язковим")]
         [MinLength(6, ErrorMessage = "Пароль повинен містити мінімум 6 символів")]
+        [MaxLength(100, ErrorMessage = "Пароль не може перевищувати 100 символів")]
+        [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Підтвердження пароля є обов'язковим")]
+        [Compare("Password", ErrorMessage = "Паролі не співпадають")]
+        [DataType(DataType.Password)]
+        public string ConfirmPassword { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Ім'я є обов'язковим")]
         [MinLength(2, ErrorMessage = "Ім'я повинно містити мінімум 2 символи")]

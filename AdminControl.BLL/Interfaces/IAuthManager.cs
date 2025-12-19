@@ -7,6 +7,5 @@ namespace AdminControl.BLL.Interfaces
         UserDto? Authenticate(string login, string password);
         UserDto? GetUserById(int id);
         UserDto? GetUserByLogin(string login);
-        List<UserDto> GetUsers();
     }
 }

@@ -3,12 +3,45 @@
     ViewData["Title"] = "Помилка";
 }
 
-<h1 class="text-danger">Помилка</h1>
-<h2 class="text-danger">Виникла помилка при обробці вашого запиту.</h2>
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body p-5 text-center">
+                <div class="mb-4 text-danger">
+                    <i class="bi bi-bug" style="font-size: 5rem;"></i>
+                </div>
+                
+                <h2 class="fw-bold text-danger mb-3">Виникла помилка</h2>
+                
+                <p class="text-muted mb-4">
+                    Щось пішло не так при обробці вашого запиту.<br>
+                    Спробуйте оновити сторінку або поверніться на головну.
+                </p>
 
-@if (Model?.ShowRequestId ?? false)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model?.RequestId</code>
-    </p>
-}
+                @if (Model?.ShowRequestId ?? false)
+                {
+                    <div class="alert alert-secondary text-start mb-4">
+                        <strong>Request ID:</strong> 
+                        <code>@Model?.RequestId</code>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model?.Message))
+                {
+                    <div class="alert alert-danger text-start mb-4">
+                        @Model.Message
+                    </div>
+                }
+
+                <div class="d-flex justify-content-center gap-3">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                        <i class="bi bi-house me-2"></i>На головну
+                    </a>
+                    <button onclick="location.reload()" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-clockwise me-2"></i>Оновити
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

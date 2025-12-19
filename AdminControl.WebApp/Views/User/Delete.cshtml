@@ -1,0 +1,47 @@
+@model AdminControl.DTO.UserDto
+@{
+    ViewData["Title"] = "Видалити користувача";
+    var initials = $"{Model.FirstName.FirstOrDefault()}{Model.LastName.FirstOrDefault()}".ToUpper();
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card border-danger border-top border-3">
+            <div class="card-body p-5 text-center">
+                <div class="mb-4 text-danger">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 4rem;"></i>
+                </div>
+                
+                <h3 class="fw-bold mb-3">Видалити користувача?</h3>
+                
+                <div class="d-flex justify-content-center mb-4">
+                    <div class="avatar avatar-lg me-3">@initials</div>
+                    <div class="text-start">
+                        <div class="fw-semibold">@Model.FullName</div>
+                        <div class="text-muted small">@@@Model.Login</div>
+                        <div class="text-muted small">@Model.Email</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning text-start mb-4">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    <strong>Увага!</strong> Ця дія незворотна. Всі дані користувача буде видалено назавжди.
+                </div>
+
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" name="id" value="@Model.UserID" />
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="d-flex justify-content-center gap-3">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-x-lg me-2"></i>Скасувати
+                        </a>
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="bi bi-trash me-2"></i>Видалити
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

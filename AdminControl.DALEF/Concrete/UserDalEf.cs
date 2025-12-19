@@ -1,7 +1,6 @@
 using AdminControl.DAL;
 using AdminControl.DALEF.Models;
 using AdminControl.DTO;
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,174 +9,156 @@ namespace AdminControl.DALEF.Concrete
 {
     public class UserDalEf : IUserDal
     {
-        private readonly string _connStr;
-        private readonly IMapper _mapper;
+        private readonly AdminControlContext _context;
 
-        public UserDalEf(string connStr, IMapper mapper)
+        public UserDalEf(AdminControlContext context)
         {
-            _connStr = connStr;
-            _mapper = mapper;
+            _context = context;
         }
 
         public List<UserDto> GetAll()
         {
-            using (var context = new AdminControlContext(_connStr))
-            {
-                return context.Users
-                    .Include(u => u.Role)
-                    .Select(u => new UserDto
-                    {
-                        UserID = u.UserID,
-                        Login = u.Login,
-                        FirstName = u.FirstName ?? string.Empty,
-                        LastName = u.LastName ?? string.Empty,
-                        Email = u.Email,
-                        PhoneNumber = u.PhoneNumber,
-                        Address = u.Address,
-                        Gender = u.Gender,
-                        RoleID = u.RoleID,
-                        RoleName = u.Role != null ? u.Role.RoleName : "Немає ролі",
-                        IsActive = u.IsActive
-                    }).ToList();
-            }
+            return _context.Users
+                .AsNoTracking()
+                .Include(u => u.Role)
+                .Select(u => new UserDto
+                {
+                    UserID = u.UserID,
+                    Login = u.Login,
+                    FirstName = u.FirstName ?? string.Empty,
+                    LastName = u.LastName ?? string.Empty,
+                    Email = u.Email,
+                    PhoneNumber = u.PhoneNumber,
+                    Address = u.Address,
+                    Gender = u.Gender,
+                    RoleID = u.RoleID,
+                    RoleName = u.Role != null ? u.Role.RoleName : "Немає ролі",
+                    IsActive = u.IsActive
+                })
+                .OrderBy(u => u.LastName)
+                .ThenBy(u => u.FirstName)
+                .ToList();
         }
 
         public UserDto? GetById(int userId)
         {
-            using (var context = new AdminControlContext(_connStr))
-            {
-                var user = context.Users
-                    .Include(u => u.Role)
-                    .FirstOrDefault(u => u.UserID == userId);
+            var user = _context.Users
+                .AsNoTracking()
+                .Include(u => u.Role)
+                .FirstOrDefault(u => u.UserID == userId);
 
-                if (user == null) return null;
+            if (user == null) return null;
 
-                return MapToDto(user);
-            }
+            return MapToDto(user);
         }
 
         public UserDto? GetByLogin(string login)
         {
-            using (var context = new AdminControlContext(_connStr))
-            {
-                var user = context.Users
-                    .Include(u => u.Role)
-                    .FirstOrDefault(u => u.Login == login);
+            var user = _context.Users
+                .AsNoTracking()
+                .Include(u => u.Role)
+                .FirstOrDefault(u => u.Login == login);
 
-                if (user == null) return null;
+            if (user == null) return null;
 
-                return MapToDto(user);
-            }
+            return MapToDto(user);
         }
 
         public UserDto? Authenticate(string login, string passwordHash)
         {
-            using (var context = new AdminControlContext(_connStr))
-            {
-                var user = context.Users
-                    .Include(u => u.Role)
-                    .FirstOrDefault(u => u.Login == login && u.PasswordHash == passwordHash);
+            var user = _context.Users
+                .AsNoTracking()
+                .Include(u => u.Role)
+                .FirstOrDefault(u => u.Login == login && u.PasswordHash == passwordHash);
 
-                if (user == null) return null;
+            if (user == null) return null;
 
-                return MapToDto(user);
-            }
+            return MapToDto(user);
         }
 
         public UserDto Create(UserCreateDto userDto)
         {
-            using (var context = new AdminControlContext(_connStr))
+            string passwordHash = ComputeHash(userDto.Password);
+
+            var entity = new User
             {
-                string passwordHash = ComputeHash(userDto.Password);
+                Login = userDto.Login,
+                PasswordHash = passwordHash,
+                FirstName = userDto.FirstName,
+                LastName = userDto.LastName,
+                Email = userDto.Email,
+                PhoneNumber = userDto.PhoneNumber,
+                Address = userDto.Address,
+                Gender = userDto.Gender,
+                RoleID = userDto.RoleID,
+                IsActive = userDto.IsActive,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
-                var entity = new User
-                {
-                    Login = userDto.Login,
-                    PasswordHash = passwordHash,
-                    FirstName = userDto.FirstName,
-                    LastName = userDto.LastName,
-                    Email = userDto.Email,
-                    PhoneNumber = userDto.PhoneNumber,
-                    Address = userDto.Address,
-                    Gender = userDto.Gender,
-                    RoleID = userDto.RoleID,
-                    IsActive = userDto.IsActive,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+            _context.Users.Add(entity);
+            _context.SaveChanges();
 
-                context.Users.Add(entity);
-                context.SaveChanges();
+            // Reload with Role included
+            var createdUser = _context.Users
+                .AsNoTracking()
+                .Include(u => u.Role)
+                .First(u => u.UserID == entity.UserID);
 
-                var createdUser = context.Users
-                    .Include(u => u.Role)
-                    .First(u => u.UserID == entity.UserID);
-
-                return MapToDto(createdUser);
-            }
+            return MapToDto(createdUser);
         }
 
         public UserDto Update(UserUpdateDto userDto)
         {
-            using (var context = new AdminControlContext(_connStr))
+            var entity = _context.Users.FirstOrDefault(u => u.UserID == userDto.UserID);
+            if (entity == null)
             {
-                var entity = context.Users.FirstOrDefault(u => u.UserID == userDto.UserID);
-                if (entity == null)
-                {
-                    throw new KeyNotFoundException($"Користувач з ID {userDto.UserID} не знайдено");
-                }
-
-                entity.FirstName = userDto.FirstName;
-                entity.LastName = userDto.LastName;
-                entity.Email = userDto.Email;
-                entity.PhoneNumber = userDto.PhoneNumber;
-                entity.Address = userDto.Address;
-                entity.Gender = userDto.Gender;
-                entity.RoleID = userDto.RoleID;
-                entity.IsActive = userDto.IsActive;
-                entity.UpdatedAt = DateTime.UtcNow;
-
-                context.SaveChanges();
-
-                var updatedUser = context.Users
-                    .Include(u => u.Role)
-                    .First(u => u.UserID == entity.UserID);
-
-                return MapToDto(updatedUser);
+                throw new KeyNotFoundException($"Користувач з ID {userDto.UserID} не знайдено");
             }
+
+            entity.FirstName = userDto.FirstName;
+            entity.LastName = userDto.LastName;
+            entity.Email = userDto.Email;
+            entity.PhoneNumber = userDto.PhoneNumber;
+            entity.Address = userDto.Address;
+            entity.Gender = userDto.Gender;
+            entity.RoleID = userDto.RoleID;
+            entity.IsActive = userDto.IsActive;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            _context.SaveChanges();
+
+            // Reload with Role included
+            var updatedUser = _context.Users
+                .AsNoTracking()
+                .Include(u => u.Role)
+                .First(u => u.UserID == entity.UserID);
+
+            return MapToDto(updatedUser);
         }
 
         public bool Delete(int userId)
         {
-            using (var context = new AdminControlContext(_connStr))
-            {
-                var entity = context.Users.FirstOrDefault(u => u.UserID == userId);
-                if (entity == null) return false;
+            var entity = _context.Users.FirstOrDefault(u => u.UserID == userId);
+            if (entity == null) return false;
 
-                context.Users.Remove(entity);
-                int affectedRows = context.SaveChanges();
-                return affectedRows == 1;
-            }
+            _context.Users.Remove(entity);
+            int affectedRows = _context.SaveChanges();
+            return affectedRows == 1;
         }
 
         public bool LoginExists(string login)
         {
-            using (var context = new AdminControlContext(_connStr))
-            {
-                return context.Users.Any(u => u.Login == login);
-            }
+            return _context.Users.Any(u => u.Login == login);
         }
 
         public bool EmailExists(string email, int? excludeUserId = null)
         {
-            using (var context = new AdminControlContext(_connStr))
+            if (excludeUserId.HasValue)
             {
-                if (excludeUserId.HasValue)
-                {
-                    return context.Users.Any(u => u.Email == email && u.UserID != excludeUserId.Value);
-                }
-                return context.Users.Any(u => u.Email == email);
+                return _context.Users.Any(u => u.Email == email && u.UserID != excludeUserId.Value);
             }
+            return _context.Users.Any(u => u.Email == email);
         }
 
         private static UserDto MapToDto(User user)

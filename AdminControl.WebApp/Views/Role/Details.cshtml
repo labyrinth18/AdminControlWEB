@@ -1,22 +1,77 @@
-@model RoleDto
+@model AdminControl.DTO.RoleDto
 @{
     ViewData["Title"] = "Деталі ролі";
+    var userCount = ViewBag.UserCount ?? 0;
+    var isAdmin = ViewBag.IsAdmin == true;
+    
+    var badgeClass = Model.RoleName switch
+    {
+        "Admin" => "bg-danger",
+        "Manager" => "bg-primary",
+        "User" => "bg-secondary",
+        _ => "bg-info"
+    };
 }
 
-<h2>Деталі ролі</h2>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="page-header">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Role" asp-action="Index">Ролі</a></li>
+                    <li class="breadcrumb-item active">@Model.RoleName</li>
+                </ol>
+            </nav>
+        </div>
 
-<div class="card">
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-2">ID</dt>
-            <dd class="col-sm-10">@Model.RoleID</dd>
-            <dt class="col-sm-2">Назва ролі</dt>
-            <dd class="col-sm-10">@Model.RoleName</dd>
-        </dl>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-person-badge me-2"></i>Інформація про роль</span>
+                <span class="badge @badgeClass">@Model.RoleName</span>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">ID</dt>
+                    <dd class="col-sm-8 fw-semibold">@Model.RoleID</dd>
+
+                    <dt class="col-sm-4 text-muted">Назва</dt>
+                    <dd class="col-sm-8 fw-semibold">@Model.RoleName</dd>
+
+                    <dt class="col-sm-4 text-muted">Користувачів</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-light text-dark">
+                            <i class="bi bi-people me-1"></i>@userCount
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+            @if (isAdmin)
+            {
+                <div class="card-footer d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Назад
+                    </a>
+                    <div class="d-flex gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.RoleID" class="btn btn-primary">
+                            <i class="bi bi-pencil me-2"></i>Редагувати
+                        </a>
+                        @if ((int)userCount == 0)
+                        {
+                            <a asp-action="Delete" asp-route-id="@Model.RoleID" class="btn btn-outline-danger">
+                                <i class="bi bi-trash me-2"></i>Видалити
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card-footer">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Назад до списку
+                    </a>
+                </div>
+            }
+        </div>
     </div>
-</div>
-
-<div class="mt-3">
-    <a asp-action="Edit" asp-route-id="@Model.RoleID" class="btn btn-warning">Редагувати</a>
-    <a asp-action="Index" class="btn btn-secondary">Назад до списку</a>
 </div>

@@ -13,7 +13,7 @@ namespace AdminControl.BL.Tests.Controllers
     [TestFixture]
     public class RoleControllerTests
     {
-        private Mock<IRoleManager> _roleManagerMock;
+        private Mock<IUserManager> _roleManagerMock;
         private Mock<IMapper> _mapperMock;
         private Mock<ILogger<RoleController>> _loggerMock;
         private Mock<ITempDataDictionary> _tempDataMock;
@@ -22,7 +22,7 @@ namespace AdminControl.BL.Tests.Controllers
         [SetUp]
         public void Setup()
         {
-            _roleManagerMock = new Mock<IRoleManager>();
+            _roleManagerMock = new Mock<IUserManager>();
             _mapperMock = new Mock<IMapper>();
             _loggerMock = new Mock<ILogger<RoleController>>();
             _tempDataMock = new Mock<ITempDataDictionary>();

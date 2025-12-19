@@ -5,6 +5,7 @@
       <conversionPattern value="%date [%thread] %-5level %logger - %message%newline" />
     </layout>
   </appender>
+  
   <appender name="FileAppender" type="log4net.Appender.RollingFileAppender">
     <file value="logs/admincontrol.log" />
     <appendToFile value="true" />
@@ -16,6 +17,7 @@
       <conversionPattern value="%date [%thread] %-5level %logger - %message%newline" />
     </layout>
   </appender>
+  
   <root>
     <level value="DEBUG" />
     <appender-ref ref="ConsoleAppender" />

@@ -17,12 +17,22 @@ namespace AdminControl.BLL.Concrete
 
         public UserDto? Authenticate(string login, string password)
         {
+            if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
+            {
+                throw new UnauthorizedAccessException("Невірний логін або пароль.");
+            }
+
             string passwordHash = ComputeHash(password);
             var user = _userDal.Authenticate(login, passwordHash);
 
             if (user == null)
             {
                 throw new UnauthorizedAccessException("Невірний логін або пароль.");
+            }
+
+            if (!user.IsActive)
+            {
+                throw new UnauthorizedAccessException("Ваш обліковий запис деактивовано.");
             }
 
             return user;
@@ -36,11 +46,6 @@ namespace AdminControl.BLL.Concrete
         public UserDto? GetUserByLogin(string login)
         {
             return _userDal.GetByLogin(login);
-        }
-
-        public List<UserDto> GetUsers()
-        {
-            return _userDal.GetAll();
         }
 
         private static string ComputeHash(string password)

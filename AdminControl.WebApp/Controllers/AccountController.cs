@@ -51,27 +51,19 @@ namespace AdminControl.WebApp.Controllers
                     return View(model);
                 }
 
-                // 2. Check Active Status
-                if (!user.IsActive)
-                {
-                    _logger.LogWarning("Login failed: Deactivated user '{Login}' attempted login.", model.Login);
-                    ModelState.AddModelError("", "Ваш обліковий запис деактивовано.");
-                    return View(model);
-                }
-
-                // 3. CRITICAL: Role-Based Restriction (Admin or Manager ONLY)
+                // 2. Role-Based Restriction (Admin or Manager ONLY for Admin Panel)
                 var allowedRoles = new[] { "Admin", "Manager" };
                 if (!allowedRoles.Contains(user.RoleName, StringComparer.OrdinalIgnoreCase))
                 {
-                    // Security Logging
-                    _logger.LogWarning("Security Alert: User '{Login}' (ID: {Id}) with role '{Role}' attempted to access Admin Panel but was denied.",
+                    _logger.LogWarning(
+                        "Security Alert: User '{Login}' (ID: {Id}) with role '{Role}' attempted admin panel access.",
                         user.Login, user.UserID, user.RoleName);
 
                     ModelState.AddModelError("", "Доступ заборонено. Тільки для адміністраторів та менеджерів.");
                     return View(model);
                 }
 
-                // 4. Create Identity
+                // 3. Create Identity
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
@@ -103,10 +95,16 @@ namespace AdminControl.WebApp.Controllers
 
                 return RedirectToAction("Index", "Home");
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning("Login failed for '{Login}': {Message}", model.Login, ex.Message);
+                ModelState.AddModelError("", ex.Message);
+                return View(model);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "System Error during login for '{Login}'", model.Login);
-                ModelState.AddModelError("", "Виникла системна помилка.");
+                ModelState.AddModelError("", "Виникла системна помилка. Спробуйте пізніше.");
                 return View(model);
             }
         }
@@ -124,8 +122,12 @@ namespace AdminControl.WebApp.Controllers
         [AllowAnonymous]
         public IActionResult AccessDenied(string? returnUrl = null)
         {
-            _logger.LogWarning("Access Denied: User '{User}' attempted to access '{Url}'",
-                User.Identity?.Name ?? "Anonymous", returnUrl);
+            _logger.LogWarning(
+                "Access Denied: User '{User}' attempted to access '{Url}'",
+                User.Identity?.Name ?? "Anonymous", 
+                returnUrl);
+
+            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
     }

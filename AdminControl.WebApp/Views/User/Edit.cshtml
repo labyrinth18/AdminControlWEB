@@ -1,0 +1,130 @@
+@model UserEditViewModel
+@{
+    ViewData["Title"] = "Редагувати користувача";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="page-header">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="User" asp-action="Index">Користувачі</a></li>
+                    <li class="breadcrumb-item active">Редагування</li>
+                </ol>
+            </nav>
+            <h1 class="page-title">Редагувати користувача</h1>
+            <p class="page-subtitle">
+                <span class="badge bg-secondary">@@@Model.Login</span>
+                <span class="text-muted ms-2">ID: @Model.User.UserID</span>
+            </p>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="User.UserID" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <!-- Personal Info -->
+                    <h6 class="text-muted text-uppercase mb-3">
+                        <i class="bi bi-person me-2"></i>Особиста інформація
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="User.FirstName" class="form-label">Ім'я <span class="text-danger">*</span></label>
+                            <input asp-for="User.FirstName" class="form-control" />
+                            <span asp-validation-for="User.FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="User.LastName" class="form-label">Прізвище <span class="text-danger">*</span></label>
+                            <input asp-for="User.LastName" class="form-control" />
+                            <span asp-validation-for="User.LastName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="User.Email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input asp-for="User.Email" class="form-control" type="email" />
+                            <span asp-validation-for="User.Email" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="User.PhoneNumber" class="form-label">Телефон</label>
+                            <input asp-for="User.PhoneNumber" class="form-control" type="tel" />
+                            <span asp-validation-for="User.PhoneNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="User.Gender" class="form-label">Стать</label>
+                            <select asp-for="User.Gender" class="form-select">
+                                <option value="">Не вказано</option>
+                                <option value="Male">Чоловік</option>
+                                <option value="Female">Жінка</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Логін</label>
+                            <input type="text" class="form-control" value="@Model.Login" readonly disabled />
+                            <small class="text-muted">Логін не можна змінити</small>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="User.Address" class="form-label">Адреса</label>
+                            <textarea asp-for="User.Address" class="form-control" rows="2"></textarea>
+                            <span asp-validation-for="User.Address" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Role & Status -->
+                    <h6 class="text-muted text-uppercase mb-3">
+                        <i class="bi bi-shield me-2"></i>Роль та статус
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="User.RoleID" class="form-label">Роль <span class="text-danger">*</span></label>
+                            @if (Model.CanChangeRole)
+                            {
+                                <select asp-for="User.RoleID" class="form-select" asp-items="@(new SelectList(Model.AvailableRoles, "RoleID", "RoleName"))">
+                                </select>
+                            }
+                            else
+                            {
+                                <input type="hidden" asp-for="User.RoleID" />
+                                @{
+                                    var currentRole = Model.AvailableRoles.FirstOrDefault(r => r.RoleID == Model.User.RoleID);
+                                }
+                                <input type="text" class="form-control" value="@currentRole?.RoleName" readonly disabled />
+                                <small class="text-muted">Тільки адміністратор може змінювати ролі</small>
+                            }
+                            <span asp-validation-for="User.RoleID" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Статус</label>
+                            <div class="form-check form-switch mt-2">
+                                <input asp-for="User.IsActive" class="form-check-input" type="checkbox" role="switch" />
+                                <label asp-for="User.IsActive" class="form-check-label">
+                                    @(Model.User.IsActive ? "Активний" : "Неактивний")
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <hr class="my-4" />
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Скасувати
+                        </a>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Details" asp-route-id="@Model.User.UserID" class="btn btn-outline-primary">
+                                <i class="bi bi-eye me-2"></i>Переглянути
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-2"></i>Зберегти зміни
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

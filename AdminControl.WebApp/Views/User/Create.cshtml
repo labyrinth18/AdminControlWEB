@@ -1,0 +1,138 @@
+@model UserCreateViewModel
+@{
+    ViewData["Title"] = "Створити користувача";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="page-header">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="User" asp-action="Index">Користувачі</a></li>
+                    <li class="breadcrumb-item active">Створення</li>
+                </ol>
+            </nav>
+            <h1 class="page-title">Створити користувача</h1>
+            <p class="page-subtitle">Заповніть форму для створення нового облікового запису</p>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <!-- Account Info -->
+                    <h6 class="text-muted text-uppercase mb-3">
+                        <i class="bi bi-person-badge me-2"></i>Дані облікового запису
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="User.Login" class="form-label">Логін <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">@@</span>
+                                <input asp-for="User.Login" class="form-control" placeholder="username" />
+                            </div>
+                            <span asp-validation-for="User.Login" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="User.Email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input asp-for="User.Email" class="form-control" type="email" placeholder="email@example.com" />
+                            <span asp-validation-for="User.Email" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="User.Password" class="form-label">Пароль <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input asp-for="User.Password" class="form-control" type="password" id="password" />
+                                <button class="btn btn-outline-secondary" type="button" data-toggle-password="password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="User.Password" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="User.ConfirmPassword" class="form-label">Підтвердження пароля <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input asp-for="User.ConfirmPassword" class="form-control" type="password" id="confirmPassword" />
+                                <button class="btn btn-outline-secondary" type="button" data-toggle-password="confirmPassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="User.ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Personal Info -->
+                    <h6 class="text-muted text-uppercase mb-3">
+                        <i class="bi bi-person me-2"></i>Особиста інформація
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="User.FirstName" class="form-label">Ім'я <span class="text-danger">*</span></label>
+                            <input asp-for="User.FirstName" class="form-control" placeholder="Іван" />
+                            <span asp-validation-for="User.FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="User.LastName" class="form-label">Прізвище <span class="text-danger">*</span></label>
+                            <input asp-for="User.LastName" class="form-control" placeholder="Петренко" />
+                            <span asp-validation-for="User.LastName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="User.PhoneNumber" class="form-label">Телефон</label>
+                            <input asp-for="User.PhoneNumber" class="form-control" type="tel" placeholder="+380 XX XXX XXXX" />
+                            <span asp-validation-for="User.PhoneNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="User.Gender" class="form-label">Стать</label>
+                            <select asp-for="User.Gender" class="form-select">
+                                <option value="">Не вказано</option>
+                                <option value="Male">Чоловік</option>
+                                <option value="Female">Жінка</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="User.Address" class="form-label">Адреса</label>
+                            <textarea asp-for="User.Address" class="form-control" rows="2" placeholder="Місто, вулиця, будинок"></textarea>
+                            <span asp-validation-for="User.Address" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Role & Status -->
+                    <h6 class="text-muted text-uppercase mb-3">
+                        <i class="bi bi-shield me-2"></i>Роль та статус
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="User.RoleID" class="form-label">Роль <span class="text-danger">*</span></label>
+                            <select asp-for="User.RoleID" class="form-select" asp-items="@(new SelectList(Model.AvailableRoles, "RoleID", "RoleName"))">
+                                <option value="">Оберіть роль...</option>
+                            </select>
+                            <span asp-validation-for="User.RoleID" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Статус</label>
+                            <div class="form-check form-switch mt-2">
+                                <input asp-for="User.IsActive" class="form-check-input" type="checkbox" role="switch" checked />
+                                <label asp-for="User.IsActive" class="form-check-label">Активний обліковий запис</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <hr class="my-4" />
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Скасувати
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>Створити користувача
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
