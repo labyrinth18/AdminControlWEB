@@ -19,7 +19,6 @@ namespace AdminControl.WebApp.Controllers
             _logger = logger;
         }
 
-        // GET: Account/Login
         [AllowAnonymous]
         public IActionResult Login(string? returnUrl = null)
         {
@@ -27,11 +26,9 @@ namespace AdminControl.WebApp.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
-
             return View(new LoginViewModel { ReturnUrl = returnUrl });
         }
 
-        // POST: Account/Login
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -44,22 +41,37 @@ namespace AdminControl.WebApp.Controllers
 
             try
             {
+                // 1. Authenticate Credentials
                 var user = _authManager.Authenticate(model.Login, model.Password);
 
                 if (user == null)
                 {
-                    _logger.LogWarning("Невдала спроба входу для користувача {Login}", model.Login);
+                    _logger.LogWarning("Login failed: Invalid credentials for user '{Login}'", model.Login);
                     ModelState.AddModelError("", "Невірний логін або пароль");
                     return View(model);
                 }
 
+                // 2. Check Active Status
                 if (!user.IsActive)
                 {
-                    _logger.LogWarning("Спроба входу деактивованого користувача {Login}", model.Login);
-                    ModelState.AddModelError("", "Ваш обліковий запис деактивовано. Зверніться до адміністратора.");
+                    _logger.LogWarning("Login failed: Deactivated user '{Login}' attempted login.", model.Login);
+                    ModelState.AddModelError("", "Ваш обліковий запис деактивовано.");
                     return View(model);
                 }
 
+                // 3. CRITICAL: Role-Based Restriction (Admin or Manager ONLY)
+                var allowedRoles = new[] { "Admin", "Manager" };
+                if (!allowedRoles.Contains(user.RoleName, StringComparer.OrdinalIgnoreCase))
+                {
+                    // Security Logging
+                    _logger.LogWarning("Security Alert: User '{Login}' (ID: {Id}) with role '{Role}' attempted to access Admin Panel but was denied.",
+                        user.Login, user.UserID, user.RoleName);
+
+                    ModelState.AddModelError("", "Доступ заборонено. Тільки для адміністраторів та менеджерів.");
+                    return View(model);
+                }
+
+                // 4. Create Identity
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
@@ -82,7 +94,7 @@ namespace AdminControl.WebApp.Controllers
                     new ClaimsPrincipal(claimsIdentity),
                     authProperties);
 
-                _logger.LogInformation("Користувач {Login} успішно увійшов у систему", model.Login);
+                _logger.LogInformation("User '{Login}' logged in successfully as '{Role}'.", model.Login, user.RoleName);
 
                 if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
                 {
@@ -91,38 +103,29 @@ namespace AdminControl.WebApp.Controllers
 
                 return RedirectToAction("Index", "Home");
             }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogWarning("Невдала спроба входу для користувача {Login}: {Message}", model.Login, ex.Message);
-                ModelState.AddModelError("", "Невірний логін або пароль");
-                return View(model);
-            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Помилка автентифікації для користувача {Login}", model.Login);
-                ModelState.AddModelError("", "Виникла помилка при вході в систему");
+                _logger.LogError(ex, "System Error during login for '{Login}'", model.Login);
+                ModelState.AddModelError("", "Виникла системна помилка.");
                 return View(model);
             }
         }
 
-        // POST: Account/Logout
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             var userName = User.Identity?.Name ?? "Unknown";
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            _logger.LogInformation("Користувач {Login} вийшов із системи", userName);
+            _logger.LogInformation("User '{Login}' logged out.", userName);
             return RedirectToAction("Login");
         }
 
-        // GET: Account/AccessDenied
         [AllowAnonymous]
         public IActionResult AccessDenied(string? returnUrl = null)
         {
-            _logger.LogWarning("Відмовлено в доступі користувачу {User} до ресурсу {Url}", 
+            _logger.LogWarning("Access Denied: User '{User}' attempted to access '{Url}'",
                 User.Identity?.Name ?? "Anonymous", returnUrl);
-            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
     }

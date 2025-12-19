@@ -1,16 +1,17 @@
 using AutoMapper;
 using AdminControl.BLL.Interfaces;
 using AdminControl.DTO;
-using AdminControl.WebApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AdminControl.WebApp.Controllers
 {
-    [Authorize(Roles = "Admin,Адміністратор")]
+    // Updated to include 'Manager' based on new requirements
+    [Authorize(Roles = "Admin,Manager")]
     public class RoleController : Controller
     {
         private readonly IRoleManager _manager;
+        // IMapper is injected to ensure Arch consistency if we need ViewModels later
         private readonly IMapper _mapper;
         private readonly ILogger<RoleController> _logger;
 
@@ -21,72 +22,61 @@ namespace AdminControl.WebApp.Controllers
             _logger = logger;
         }
 
-        // GET: RoleController
+        // GET: Role
         public ActionResult Index()
         {
-            _logger.LogInformation("Перегляд списку ролей користувачем {User}", User.Identity?.Name);
             var roles = _manager.GetAllRoles();
             return View(roles);
         }
 
-        // GET: RoleController/Details/5
+        // GET: Role/Details/5
         public ActionResult Details(int id)
         {
             var role = _manager.GetRoleById(id);
-            if (role == null)
-            {
-                _logger.LogWarning("Роль з ID {RoleId} не знайдено", id);
-                return NotFound();
-            }
+            if (role == null) return NotFound();
             return View(role);
         }
 
-        // GET: RoleController/Create
+        // GET: Role/Create
         public ActionResult Create()
         {
             return View(new RoleCreateDto());
         }
 
-        // POST: RoleController/Create
+        // POST: Role/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(RoleCreateDto role)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(role);
-            }
+            if (!ModelState.IsValid) return View(role);
 
             try
             {
                 _manager.CreateRole(role);
-                _logger.LogInformation("Користувач {User} створив роль {RoleName}", User.Identity?.Name, role.RoleName);
+                _logger.LogInformation("Role '{RoleName}' created by '{User}'", role.RoleName, User.Identity?.Name);
                 TempData["Success"] = "Роль успішно створено";
                 return RedirectToAction(nameof(Index));
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "Помилка при створенні ролі {RoleName}", role.RoleName);
-                ModelState.AddModelError("RoleName", ex.Message);
+                ModelState.AddModelError("RoleName", ex.Message); // Role exists error
                 return View(role);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Неочікувана помилка при створенні ролі {RoleName}", role.RoleName);
-                ModelState.AddModelError("", "Виникла помилка при створенні ролі");
+                _logger.LogError(ex, "Error creating role");
+                ModelState.AddModelError("", "Помилка створення ролі.");
                 return View(role);
             }
         }
 
-        // GET: RoleController/Edit/5
+        // GET: Role/Edit/5
         public ActionResult Edit(int id)
         {
             var role = _manager.GetRoleById(id);
-            if (role == null)
-            {
-                return NotFound();
-            }
+            if (role == null) return NotFound();
 
+            // Mapping DTO to UpdateDTO for the view
             var editDto = new RoleUpdateDto
             {
                 RoleID = role.RoleID,
@@ -95,58 +85,38 @@ namespace AdminControl.WebApp.Controllers
             return View(editDto);
         }
 
-        // POST: RoleController/Edit/5
+        // POST: Role/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, RoleUpdateDto role)
         {
-            if (id != role.RoleID)
-            {
-                return NotFound();
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View(role);
-            }
+            if (id != role.RoleID) return BadRequest();
+            if (!ModelState.IsValid) return View(role);
 
             try
             {
                 _manager.UpdateRole(role);
-                _logger.LogInformation("Користувач {User} оновив роль {RoleId}", User.Identity?.Name, id);
-                TempData["Success"] = "Роль успішно оновлено";
+                _logger.LogInformation("Role ID {Id} updated by '{User}'", id, User.Identity?.Name);
+                TempData["Success"] = "Роль оновлено";
                 return RedirectToAction(nameof(Index));
             }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
+            catch (KeyNotFoundException) { return NotFound(); }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "Помилка при оновленні ролі {RoleId}", id);
                 ModelState.AddModelError("RoleName", ex.Message);
                 return View(role);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Неочікувана помилка при оновленні ролі {RoleId}", id);
-                ModelState.AddModelError("", "Виникла помилка при оновленні ролі");
-                return View(role);
-            }
         }
 
-        // GET: RoleController/Delete/5
+        // GET: Role/Delete/5
         public ActionResult Delete(int id)
         {
             var role = _manager.GetRoleById(id);
-            if (role == null)
-            {
-                return NotFound();
-            }
+            if (role == null) return NotFound();
             return View(role);
         }
 
-        // POST: RoleController/Delete/5
+        // POST: Role/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
@@ -154,18 +124,14 @@ namespace AdminControl.WebApp.Controllers
             try
             {
                 _manager.DeleteRole(id);
-                _logger.LogInformation("Користувач {User} видалив роль {RoleId}", User.Identity?.Name, id);
-                TempData["Success"] = "Роль успішно видалено";
+                _logger.LogInformation("Role ID {Id} deleted by '{User}'", id, User.Identity?.Name);
+                TempData["Success"] = "Роль видалено";
                 return RedirectToAction(nameof(Index));
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Помилка при видаленні ролі {RoleId}", id);
-                TempData["Error"] = "Виникла помилка при видаленні ролі";
+                _logger.LogError(ex, "Error deleting role");
+                TempData["Error"] = "Не вдалося видалити роль (можливо, вона використовується).";
                 return RedirectToAction(nameof(Index));
             }
         }

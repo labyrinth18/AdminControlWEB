@@ -14,37 +14,41 @@ namespace AdminControl.WebApp
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add logging with log4net
-            builder.Services.AddLogging(logging =>
+            // 1. Logging (Teacher's Pattern: Log4Net)
+            builder.Services.AddLogging(loggingBuilder =>
             {
-                logging.ClearProviders();
-                logging.SetMinimumLevel(LogLevel.Debug);
-                logging.AddLog4Net("log4net.xml");
+                loggingBuilder.ClearProviders();
+                loggingBuilder.SetMinimumLevel(LogLevel.Debug);
+                loggingBuilder.AddLog4Net("log4net.xml");
             });
 
-            // Configure AutoMapper
+            // 2. AutoMapper (Teacher's Pattern: Using Service Provider & Logger Factory)
             builder.Services.AddSingleton<IMapper>(sp =>
             {
+                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
                 var config = new MapperConfiguration(cfg =>
                 {
                     cfg.ConstructServicesUsing(sp.GetService);
+                    // Scans the Assembly where RoleProfile_Back resides (DALEF)
                     cfg.AddMaps(typeof(RoleProfile_Back).Assembly);
-                });
-
+                }); // Note: The teacher's code didn't pass loggerFactory here in console, but in WebApp it's good practice. 
+                    // However, strictly following the provided Program.cs snippet:
                 return config.CreateMapper();
             });
 
+            // 3. Database Connection
             string connStr = builder.Configuration.GetConnectionString("AdminControl") ?? "";
 
-            // DAL registrations 
+            // 4. DI Registrations (DAL -> BLL -> Web)
+            // DAL
             builder.Services.AddTransient<IRoleDal>(sp => new RoleDalEf(connStr, sp.GetRequiredService<IMapper>()))
                             .AddTransient<IUserDal>(sp => new UserDalEf(connStr, sp.GetRequiredService<IMapper>()));
 
-            // BL registrations
+            // BLL
             builder.Services.AddTransient<IRoleManager, RoleManager>()
                             .AddTransient<IAuthManager, AuthManager>();
 
-            // Configure Authentication
+            // 5. Authentication
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
@@ -59,7 +63,6 @@ namespace AdminControl.WebApp
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");

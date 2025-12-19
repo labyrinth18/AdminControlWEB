@@ -1,34 +1,56 @@
-@model List<RoleDto>
+@model List<AdminControl.DTO.RoleDto>
 @{
     ViewData["Title"] = "Управління ролями";
 }
 
-<h2>Управління ролями</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0 text-dark">Ролі</h2>
+        <p class="text-muted small">Управління рівнями доступу користувачів</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary-custom shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i> Створити роль
+    </a>
+</div>
 
-<p>
-    <a asp-action="Create" class="btn btn-success">Створити нову роль</a>
-</p>
-
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Назва ролі</th>
-            <th>Дії</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
+<div class="card card-custom">
+    <div class="card-body p-0">
+        <table class="table table-custom table-hover mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4" style="width: 10%;">ID</th>
+                    <th style="width: 60%;">Назва</th>
+                    <th class="text-end pe-4" style="width: 30%;">Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="ps-4 fw-bold text-secondary">#@item.RoleID</td>
+                        <td class="fw-semibold text-dark">
+                            <i class="bi bi-shield me-2 text-primary"></i>@item.RoleName
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group" role="group">
+                                <a asp-action="Edit" asp-route-id="@item.RoleID" class="btn btn-sm btn-outline-secondary" title="Редагувати">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.RoleID" class="btn btn-sm btn-outline-danger" title="Видалити">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @if (!Model.Any())
         {
-            <tr>
-                <td>@item.RoleID</td>
-                <td>@item.RoleName</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.RoleID" class="btn btn-sm btn-info">Деталі</a>
-                    <a asp-action="Edit" asp-route-id="@item.RoleID" class="btn btn-sm btn-warning">Редагувати</a>
-                    <a asp-action="Delete" asp-route-id="@item.RoleID" class="btn btn-sm btn-danger">Видалити</a>
-                </td>
-            </tr>
+            <div class="text-center p-5 text-muted">
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                <span>Список ролей порожній</span>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+</div>

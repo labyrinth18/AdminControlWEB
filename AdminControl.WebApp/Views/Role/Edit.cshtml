@@ -1,28 +1,41 @@
-@model RoleUpdateDto
+@model AdminControl.DTO.RoleUpdateDto
 @{
-    ViewData["Title"] = "Редагування ролі";
+    ViewData["Title"] = "Редагувати роль";
 }
 
-<h2>Редагування ролі</h2>
+<div class="row justify-content-center mt-4">
+    <div class="col-md-5">
+        <div class="card card-custom">
+            <div class="card-header-custom">
+                <i class="bi bi-pencil-square me-2 text-warning"></i>Редагувати роль
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="RoleID" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3 py-2"></div>
 
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="RoleID" />
-            <div class="form-group mb-3">
-                <label asp-for="RoleName" class="control-label"></label>
-                <input asp-for="RoleName" class="form-control" />
-                <span asp-validation-for="RoleName" class="text-danger"></span>
+                    <div class="mb-4">
+                        <label asp-for="RoleName" class="form-label text-muted small fw-bold">НАЗВА РОЛІ</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-tag"></i></span>
+                            <input asp-for="RoleName" class="form-control" />
+                        </div>
+                        <span asp-validation-for="RoleName" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary-custom">Оновити</button>
+                        <a asp-action="Index" class="btn btn-light text-secondary">Скасувати</a>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Зберегти" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Скасувати</a>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
 }
